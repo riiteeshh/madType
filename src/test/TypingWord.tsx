@@ -17,7 +17,7 @@ export function TypingWord({ target, typed, isActive }: TypingWordProps) {
       {target.split("").map((char, index) => (
         <span key={index} className={charClassName(target, typed, index)}>
           {isActive && index === typed.length && (
-            <span className="absolute -ml-px h-8 w-0.5 animate-pulse bg-brand" />
+            <span className="absolute top-1/2 -ml-px h-[1em] w-0.5 -translate-y-1/2 animate-pulse bg-brand" />
           )}
           {char}
         </span>
