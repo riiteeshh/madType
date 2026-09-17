@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { useGuestStore } from "@/guest";
 
+import { ConnectionIndicator } from "./ConnectionIndicator";
 import { RaceConfigBar } from "./RaceConfigBar";
 import { RaceResults } from "./RaceResults";
 import { RaceTrack } from "./RaceTrack";
@@ -51,6 +52,7 @@ export function RaceView({
 
   return (
     <div className="flex w-full max-w-3xl flex-col items-center gap-8">
+      <ConnectionIndicator />
       {roomCode && (
         <p className="text-sm text-muted-foreground">
           Room code: <span className="font-mono text-foreground">{roomCode}</span>

@@ -65,8 +65,21 @@ export const useRaceTypingStore = create<RaceTypingState>((set, get) => ({
   },
 
   backspace: () => {
-    const { currentInput } = get();
-    if (currentInput.length > 0) set({ currentInput: currentInput.slice(0, -1) });
+    const state = get();
+    if (state.currentInput.length > 0) {
+      set({ currentInput: state.currentInput.slice(0, -1) });
+      return;
+    }
+    if (state.currentWordIndex === 0) return;
+
+    const previousIndex = state.currentWordIndex - 1;
+    const previousWords = [...state.typedWords];
+    const restoredInput = previousWords.pop() ?? "";
+    set({
+      currentWordIndex: previousIndex,
+      currentInput: restoredInput,
+      typedWords: previousWords,
+    });
   },
 
   commitWord: (progressTotal, onProgress) => {

@@ -21,6 +21,15 @@ import {
 import { randomizeQuickMatchConfig } from "./randomize-quick-match-config";
 
 let quickMatchTimer: ReturnType<typeof setTimeout> | null = null;
+let connectionListenerBound = false;
+
+export type PusherConnectionState =
+  | "initialized"
+  | "connecting"
+  | "connected"
+  | "unavailable"
+  | "disconnected"
+  | "failed";
 
 interface RaceState {
   client: PusherJs | null;
@@ -30,6 +39,7 @@ interface RaceState {
   myId: string | null;
   config: TestConfig;
   status: RaceStatus;
+  connectionState: PusherConnectionState;
   racers: Record<string, RacerProgress>;
   raceWords: string[];
   raceStartAt: number | null;
@@ -66,6 +76,7 @@ export const useRaceStore = create<RaceState>((set, get) => ({
   myId: null,
   config: DEFAULT_TEST_CONFIG,
   status: "waiting",
+  connectionState: "connecting",
   racers: {},
   raceWords: [],
   raceStartAt: null,
@@ -78,6 +89,16 @@ export const useRaceStore = create<RaceState>((set, get) => ({
 
   join: (channelName, nickname, isQuickMatch) => {
     const client = getPusherClient(nickname);
+    if (!connectionListenerBound) {
+      connectionListenerBound = true;
+      set({ connectionState: client.connection.state as PusherConnectionState });
+      client.connection.bind(
+        "state_change",
+        (states: { current: PusherConnectionState }) => {
+          set({ connectionState: states.current });
+        },
+      );
+    }
     const channel = client.subscribe(channelName) as PresenceChannel;
 
     channel.bind("pusher:subscription_succeeded", () => {
