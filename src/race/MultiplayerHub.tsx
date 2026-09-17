@@ -4,13 +4,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { generateRoomCode } from "./generate-room-code";
+import { markRoomCreated } from "./room-creator";
 
 export function MultiplayerHub() {
   const router = useRouter();
   const [joinCode, setJoinCode] = useState("");
 
   function createRoom() {
-    router.push(`/room/${generateRoomCode()}`);
+    const code = generateRoomCode();
+    markRoomCreated(code);
+    router.push(`/room/${code}`);
   }
 
   function joinRoom() {

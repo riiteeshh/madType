@@ -10,6 +10,7 @@ import { RaceResults } from "./RaceResults";
 import { RaceTrack } from "./RaceTrack";
 import { RaceTypingArea } from "./RaceTypingArea";
 import { useRaceStore } from "./race-store";
+import { isRoomCreator } from "./room-creator";
 
 export function RaceView({
   channelName,
@@ -27,8 +28,12 @@ export function RaceView({
   const racers = useRaceStore((state) => state.racers);
   const join = useRaceStore((state) => state.join);
   const leave = useRaceStore((state) => state.leave);
-  const isHost = useRaceStore((state) => state.isHost);
   const startCountdown = useRaceStore((state) => state.startCountdown);
+  const isCreator =
+    typeof window !== "undefined" &&
+    !isQuickMatch &&
+    !!roomCode &&
+    isRoomCreator(roomCode);
 
   useEffect(() => {
     hydrateGuest();
@@ -54,12 +59,12 @@ export function RaceView({
 
       {status === "waiting" && (
         <div className="flex w-full flex-col items-center gap-6">
-          <RaceConfigBar isHost={!isQuickMatch && isHost()} />
+          <RaceConfigBar isHost={isCreator} />
           <p className="text-sm text-muted-foreground">
             {playerCount} player{playerCount === 1 ? "" : "s"} in{" "}
             {isQuickMatch ? "queue" : "room"}
           </p>
-          {!isQuickMatch && isHost() && (
+          {isCreator && (
             <button
               type="button"
               onClick={startCountdown}
