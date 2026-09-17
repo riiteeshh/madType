@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
+import { useActiveWordScroll } from "@/shared";
+
 import { useTestStore } from "./test-store";
 import { useTestTicker } from "./use-test-ticker";
 import { TypingWord } from "./TypingWord";
@@ -24,6 +26,7 @@ export function TypingArea() {
   const backspace = useTestStore((state) => state.backspace);
   const space = useTestStore((state) => state.space);
   const ensureWords = useTestStore((state) => state.ensureWords);
+  const { containerRef, offset } = useActiveWordScroll(currentWordIndex);
 
   useTestTicker();
 
@@ -65,20 +68,27 @@ export function TypingArea() {
         spellCheck={false}
         aria-label="Typing input"
       />
-      <div className="flex max-h-[150px] flex-wrap overflow-hidden text-3xl leading-[1.4] md:max-h-[180px] md:text-4xl">
-        {words.map((word, index) => (
-          <TypingWord
-            key={index}
-            target={word}
-            typed={
-              index < currentWordIndex
-                ? (typedWords[index] ?? "")
-                : index === currentWordIndex
-                  ? currentInput
-                  : ""
-            }
-          />
-        ))}
+      <div className="max-h-[150px] overflow-hidden text-3xl leading-[1.4] md:max-h-[180px] md:text-4xl">
+        <div
+          ref={containerRef}
+          className="flex flex-wrap transition-transform duration-150"
+          style={{ transform: `translateY(-${offset}px)` }}
+        >
+          {words.map((word, index) => (
+            <span key={index} data-word-index={index}>
+              <TypingWord
+                target={word}
+                typed={
+                  index < currentWordIndex
+                    ? (typedWords[index] ?? "")
+                    : index === currentWordIndex
+                      ? currentInput
+                      : ""
+                }
+              />
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
+import { useActiveWordScroll } from "@/shared";
 import { TypingWord } from "@/test/TypingWord";
 
 import { useRaceStore } from "./race-store";
@@ -30,6 +31,7 @@ export function RaceTypingArea() {
   const backspace = useRaceTypingStore((state) => state.backspace);
   const commitWord = useRaceTypingStore((state) => state.commitWord);
   const resetTyping = useRaceTypingStore((state) => state.reset);
+  const { containerRef, offset } = useActiveWordScroll(currentWordIndex);
 
   const countdown = useRaceCountdown(status === "countdown" ? raceStartAt : null);
 
@@ -89,20 +91,27 @@ export function RaceTypingArea() {
         spellCheck={false}
         aria-label="Typing input"
       />
-      <div className="flex max-h-[150px] flex-wrap overflow-hidden text-3xl leading-[1.4] md:max-h-[180px] md:text-4xl">
-        {raceWords.map((word, index) => (
-          <TypingWord
-            key={index}
-            target={word}
-            typed={
-              index < currentWordIndex
-                ? (typedWords[index] ?? "")
-                : index === currentWordIndex
-                  ? currentInput
-                  : ""
-            }
-          />
-        ))}
+      <div className="max-h-[150px] overflow-hidden text-3xl leading-[1.4] md:max-h-[180px] md:text-4xl">
+        <div
+          ref={containerRef}
+          className="flex flex-wrap transition-transform duration-150"
+          style={{ transform: `translateY(-${offset}px)` }}
+        >
+          {raceWords.map((word, index) => (
+            <span key={index} data-word-index={index}>
+              <TypingWord
+                target={word}
+                typed={
+                  index < currentWordIndex
+                    ? (typedWords[index] ?? "")
+                    : index === currentWordIndex
+                      ? currentInput
+                      : ""
+                }
+              />
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );
