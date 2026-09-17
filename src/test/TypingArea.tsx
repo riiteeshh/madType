@@ -85,6 +85,7 @@ export function TypingArea() {
                       ? currentInput
                       : ""
                 }
+                isActive={index === currentWordIndex}
               />
             </span>
           ))}

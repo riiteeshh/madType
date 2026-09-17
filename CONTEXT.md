@@ -9,7 +9,7 @@ A single-player typing session in either Time or Word-Count mode, ending in a Re
 _Avoid_: Session, attempt, run
 
 **Race**:
-A multiplayer typing session shared by multiple Guests in a Room, always run in Word-Count mode so there's a clear finish line. Ends with a ranking of who finished first.
+A multiplayer typing session shared by multiple Guests. In a private Room the creator picks its Mode (Time or Word-Count), same as a solo Test; a Public Quick-Match is always Word-Count, since there's no creator to choose. Word-Count races end when a Guest completes the text (ranked by finish order); Time races end for everyone when the clock runs out (ranked by WPM).
 _Avoid_: Match, game (except "Public Quick-Match")
 
 **Mode**:

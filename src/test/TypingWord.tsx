@@ -1,20 +1,24 @@
 interface TypingWordProps {
   target: string;
   typed: string;
+  isActive: boolean;
 }
 
 function charClassName(target: string, typed: string, index: number): string {
-  if (index >= typed.length) return "text-muted-foreground";
+  if (index >= typed.length) return "text-muted-foreground opacity-60";
   return typed[index] === target[index] ? "text-foreground" : "text-destructive underline";
 }
 
-export function TypingWord({ target, typed }: TypingWordProps) {
+export function TypingWord({ target, typed, isActive }: TypingWordProps) {
   const overflow = typed.slice(target.length);
 
   return (
-    <span className="mr-3 inline-block">
+    <span className="relative mr-3 inline-block">
       {target.split("").map((char, index) => (
         <span key={index} className={charClassName(target, typed, index)}>
+          {isActive && index === typed.length && (
+            <span className="absolute -ml-px h-8 w-0.5 animate-pulse bg-brand" />
+          )}
           {char}
         </span>
       ))}

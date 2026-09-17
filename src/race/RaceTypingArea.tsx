@@ -4,10 +4,16 @@ import { useEffect, useRef } from "react";
 
 import { useActiveWordScroll } from "@/shared";
 import { TypingWord } from "@/test/TypingWord";
+import {
+  BUFFER_REFILL_SIZE,
+  generateText,
+  shouldRefillBuffer,
+} from "@/typing-engine";
 
 import { useRaceStore } from "./race-store";
 import { useRaceTypingStore } from "./race-typing-store";
 import { useRaceCountdown } from "./use-race-countdown";
+import { useRaceTimeLimit } from "./use-race-time-limit";
 
 function isPrintableKey(event: React.KeyboardEvent): boolean {
   return (
@@ -19,8 +25,12 @@ export function RaceTypingArea() {
   const inputRef = useRef<HTMLInputElement>(null);
   const raceWords = useRaceStore((state) => state.raceWords);
   const status = useRaceStore((state) => state.status);
+  const config = useRaceStore((state) => state.config);
   const raceStartAt = useRaceStore((state) => state.raceStartAt);
+  const myId = useRaceStore((state) => state.myId);
+  const myWpm = useRaceStore((state) => (myId ? state.racers[myId]?.wpm : 0)) ?? 0;
   const beginRace = useRaceStore((state) => state.beginRace);
+  const extendWords = useRaceStore((state) => state.extendWords);
   const reportProgress = useRaceStore((state) => state.reportProgress);
   const reportFinish = useRaceStore((state) => state.reportFinish);
 
@@ -34,6 +44,12 @@ export function RaceTypingArea() {
   const { containerRef, offset } = useActiveWordScroll(currentWordIndex);
 
   const countdown = useRaceCountdown(status === "countdown" ? raceStartAt : null);
+  const timeRemaining = useRaceCountdown(
+    status === "running" && config.mode === "time" && raceStartAt !== null
+      ? raceStartAt + config.durationSeconds * 1000
+      : null,
+  );
+  useRaceTimeLimit();
 
   useEffect(() => {
     resetTyping();
@@ -47,6 +63,9 @@ export function RaceTypingArea() {
     if (status === "running") inputRef.current?.focus();
   }, [status]);
 
+  const progressTotal =
+    config.mode === "words" ? raceWords.length : config.durationSeconds;
+
   function handleKeyDown(event: React.KeyboardEvent) {
     if (status !== "running") return;
 
@@ -56,10 +75,18 @@ export function RaceTypingArea() {
     }
     if (event.key === " ") {
       event.preventDefault();
-      commitWord(raceWords, reportProgress);
+      commitWord(progressTotal, reportProgress);
+      if (
+        config.mode === "time" &&
+        shouldRefillBuffer(raceWords.length, currentWordIndex + 1)
+      ) {
+        extendWords(
+          generateText({ ...config, mode: "words", wordCount: BUFFER_REFILL_SIZE }),
+        );
+      }
       return;
     }
-    if (isPrintableKey(event)) typeChar(event.key, raceWords, reportFinish);
+    if (isPrintableKey(event)) typeChar(event.key, raceWords, config.mode, reportFinish);
   }
 
   if (status === "countdown") {
@@ -82,6 +109,12 @@ export function RaceTypingArea() {
       className="relative w-full cursor-text rounded-lg p-2 outline-none"
       onClick={() => inputRef.current?.focus()}
     >
+      <div className="mb-4 flex h-10 items-center gap-6">
+        <span className="text-2xl font-semibold text-brand">
+          {config.mode === "time" ? timeRemaining : raceWords.length - currentWordIndex}
+        </span>
+        <span className="text-lg text-muted-foreground">{myWpm} wpm</span>
+      </div>
       <input
         ref={inputRef}
         onKeyDown={handleKeyDown}
@@ -108,6 +141,7 @@ export function RaceTypingArea() {
                       ? currentInput
                       : ""
                 }
+                isActive={index === currentWordIndex}
               />
             </span>
           ))}

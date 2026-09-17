@@ -39,6 +39,7 @@ interface RaceState {
   setConfig: (config: TestConfig) => void;
   startCountdown: () => void;
   beginRace: () => void;
+  extendWords: (moreWords: string[]) => void;
   reportProgress: (progress: number, wpm: number) => void;
   reportFinish: (wpm: number) => void;
 }
@@ -176,6 +177,10 @@ export const useRaceStore = create<RaceState>((set, get) => ({
 
   beginRace: () => {
     if (get().status === "countdown") set({ status: "running" });
+  },
+
+  extendWords: (moreWords) => {
+    set({ raceWords: [...get().raceWords, ...moreWords] });
   },
 
   reportProgress: (progress, wpm) => {

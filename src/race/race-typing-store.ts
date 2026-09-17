@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { calculateWpm, judgeTypedChar } from "@/typing-engine";
+import { calculateWpm, judgeTypedChar, type Mode } from "@/typing-engine";
 
 interface RaceTypingState {
   currentWordIndex: number;
@@ -13,13 +13,15 @@ interface RaceTypingState {
   typeChar: (
     char: string,
     words: string[],
+    mode: Mode,
     onFinish: (wpm: number) => void,
   ) => void;
   backspace: () => void;
   commitWord: (
-    words: string[],
+    progressTotal: number,
     onProgress: (progress: number, wpm: number) => void,
   ) => void;
+  finishOnTimeUp: (onFinish: (wpm: number) => void) => void;
 }
 
 const INITIAL_STATE = {
@@ -36,7 +38,7 @@ export const useRaceTypingStore = create<RaceTypingState>((set, get) => ({
 
   reset: () => set(INITIAL_STATE),
 
-  typeChar: (char, words, onFinish) => {
+  typeChar: (char, words, mode, onFinish) => {
     const state = get();
     const isLastWord = state.currentWordIndex === words.length - 1;
     const judgement = judgeTypedChar(
@@ -44,7 +46,7 @@ export const useRaceTypingStore = create<RaceTypingState>((set, get) => ({
       state.currentInput,
       char,
       isLastWord,
-      "words",
+      mode,
     );
     const startedAt = state.startedAt ?? Date.now();
     const correctKeystrokes =
@@ -67,7 +69,7 @@ export const useRaceTypingStore = create<RaceTypingState>((set, get) => ({
     if (currentInput.length > 0) set({ currentInput: currentInput.slice(0, -1) });
   },
 
-  commitWord: (words, onProgress) => {
+  commitWord: (progressTotal, onProgress) => {
     const state = get();
     if (state.currentInput.length === 0) return;
 
@@ -78,8 +80,20 @@ export const useRaceTypingStore = create<RaceTypingState>((set, get) => ({
       typedWords: [...state.typedWords, state.currentInput],
     });
 
-    const progress = Math.round((currentWordIndex / words.length) * 100);
+    const progress = Math.min(
+      100,
+      Math.round((currentWordIndex / progressTotal) * 100),
+    );
     const elapsed = state.startedAt === null ? 0 : Date.now() - state.startedAt;
     onProgress(progress, calculateWpm(state.correctKeystrokes, elapsed));
+  },
+
+  finishOnTimeUp: (onFinish) => {
+    const state = get();
+    const wpm =
+      state.startedAt === null
+        ? 0
+        : calculateWpm(state.correctKeystrokes, Date.now() - state.startedAt);
+    onFinish(wpm);
   },
 }));
