@@ -1,5 +1,6 @@
 "use client";
 
+import { RacerIcon } from "./RacerIcon";
 import { useRaceStore } from "./race-store";
 
 function RacerLane({
@@ -23,9 +24,11 @@ function RacerLane({
       </span>
       <div className="relative h-2 flex-1 rounded-full bg-secondary">
         <div
-          className={`absolute top-1/2 size-5 -translate-y-1/2 rounded-full border-2 border-background bg-brand shadow-[0_0_12px_-1px_var(--brand)] transition-[left] duration-150 ${finishedAt ? "scale-110" : ""}`}
-          style={{ left: `calc(${Math.min(progress, 100)}% - 10px)` }}
-        />
+          className="absolute top-1/2 -translate-y-1/2 transition-[left] duration-150"
+          style={{ left: `calc(${Math.min(progress, 100)}% - 12px)` }}
+        >
+          <RacerIcon racing={!finishedAt} />
+        </div>
       </div>
       <span
         className={`w-20 shrink-0 text-right text-sm ${finishedAt ? "font-semibold text-brand" : "text-muted-foreground"}`}
