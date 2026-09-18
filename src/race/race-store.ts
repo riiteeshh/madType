@@ -68,6 +68,16 @@ function racersFromMembers(channel: PresenceChannel): Record<string, RacerProgre
   return racers;
 }
 
+function resetRacerProgress(
+  racers: Record<string, RacerProgress>,
+): Record<string, RacerProgress> {
+  const reset: Record<string, RacerProgress> = {};
+  for (const [id, racer] of Object.entries(racers)) {
+    reset[id] = { ...racer, progress: 0, wpm: 0, finishedAt: null };
+  }
+  return reset;
+}
+
 export const useRaceStore = create<RaceState>((set, get) => ({
   client: null,
   channel: null,
@@ -126,12 +136,13 @@ export const useRaceStore = create<RaceState>((set, get) => ({
     });
 
     channel.bind(RACE_EVENTS.START, (payload: RaceStartPayload) => {
-      set({
+      set((state) => ({
         config: payload.config,
         raceWords: payload.words,
         raceStartAt: payload.startAt,
         status: "countdown",
-      });
+        racers: resetRacerProgress(state.racers),
+      }));
     });
 
     channel.bind(
@@ -179,8 +190,9 @@ export const useRaceStore = create<RaceState>((set, get) => ({
   },
 
   startCountdown: () => {
-    const { channel, config, isQuickMatch } = get();
+    const { channel, config, isQuickMatch, racers } = get();
     if (!channel) return;
+    if (Object.keys(racers).length < 2) return;
     const finalConfig = isQuickMatch ? randomizeQuickMatchConfig() : config;
     const payload: RaceStartPayload = {
       config: finalConfig,
@@ -188,12 +200,13 @@ export const useRaceStore = create<RaceState>((set, get) => ({
       startAt: Date.now() + RACE_START_COUNTDOWN_MS,
     };
     channel.trigger(RACE_EVENTS.START, payload);
-    set({
+    set((state) => ({
       config: payload.config,
       raceWords: payload.words,
       raceStartAt: payload.startAt,
       status: "countdown",
-    });
+      racers: resetRacerProgress(state.racers),
+    }));
   },
 
   beginRace: () => {

@@ -47,6 +47,7 @@ export function RaceView({
   }, [nickname, channelName, isQuickMatch, join, leave]);
 
   const playerCount = Object.keys(racers).length;
+  const canStart = playerCount >= 2;
 
   if (!nickname) return null;
 
@@ -70,10 +71,16 @@ export function RaceView({
             <button
               type="button"
               onClick={startCountdown}
-              className="cursor-pointer rounded-md bg-brand px-4 py-2 text-sm font-medium text-brand-foreground transition-transform duration-150 hover:scale-[1.03] hover:opacity-90 active:scale-95"
+              disabled={!canStart}
+              className="cursor-pointer rounded-md bg-brand px-4 py-2 text-sm font-medium text-brand-foreground transition-transform duration-150 hover:scale-[1.03] hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
             >
               Start race
             </button>
+          )}
+          {isCreator && !canStart && (
+            <p className="text-xs text-muted-foreground">
+              Waiting for at least one more player to join…
+            </p>
           )}
           {isQuickMatch && (
             <p className="text-xs text-muted-foreground">
@@ -94,13 +101,25 @@ export function RaceView({
         <div className="flex w-full flex-col gap-6">
           <RaceTrack />
           <RaceResults />
-          <button
-            type="button"
-            onClick={() => router.push("/multiplayer")}
-            className="cursor-pointer self-start rounded-md border border-border bg-secondary px-4 py-2 text-sm text-secondary-foreground transition-transform duration-150 hover:scale-[1.03] hover:bg-accent active:scale-95"
-          >
-            Leave
-          </button>
+          <div className="flex gap-3">
+            {isCreator && (
+              <button
+                type="button"
+                onClick={startCountdown}
+                disabled={!canStart}
+                className="cursor-pointer rounded-md bg-brand px-4 py-2 text-sm font-medium text-brand-foreground transition-transform duration-150 hover:scale-[1.03] hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
+              >
+                Play again
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => router.push("/multiplayer")}
+              className="cursor-pointer rounded-md border border-border bg-secondary px-4 py-2 text-sm text-secondary-foreground transition-transform duration-150 hover:scale-[1.03] hover:bg-accent active:scale-95"
+            >
+              Leave
+            </button>
+          </div>
         </div>
       )}
     </div>
